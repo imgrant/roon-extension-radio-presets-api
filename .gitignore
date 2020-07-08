@@ -1,3 +1,13 @@
+# Roon extension config
+config.json
+
+# npm fluff
+package-lock.json
+
+# VSCode settings
+*.code-workspace
+
+### Node.js generic ignores
 # Logs
 logs
 *.log
