@@ -1,0 +1,9 @@
+{
+  "author": "Ian Grant",
+  "display_name": "Radio Presets API Trigger",
+  "description": "A Roon extension to play radio presets via an API trigger",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imgrant/roon-extension-radio-presets-api.git"
+  }
+}
