@@ -1,0 +1,16 @@
+{
+    "name": "roon-extension-radio-presets-api",
+    "version": "1.0.0",
+    "description": "A Roon extension to play radio presets via an API trigger",
+    "main": "app.js",
+    "author": "Ian Grant",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "express": "^4.15.2",
+        "node-roon-api": "github:roonlabs/node-roon-api",
+        "node-roon-api-status": "github:roonlabs/node-roon-api-status",
+        "node-roon-api-transport": "github:roonlabs/node-roon-api-transport",
+        "node-roon-api-browse": "github:roonlabs/node-roon-api-browse",
+        "node-roon-api-settings": "github:roonlabs/node-roon-api-settings"
+    }
+}
