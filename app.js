@@ -159,29 +159,48 @@ function get_zone(id_or_display_name) {
 }
 
 // Radio preset request handler
-function radio_preset(zone, preset) {
+function radio_preset(zone, preset_number, api_result) {
     let opts = {
         hierarchy:  "internet_radio",
         pop_all:    true
     };
-    let preset_title = presets["preset_" + preset];
-    if (preset_title == NO_PRESET_VALUE) {
-        console.log("Preset " + preset + " is not set");
+    let preset = "preset_" + preset_number;
+    let preset_title = presets[preset];
+    if (!(preset in presets)) {
+        msg = "Preset " + preset_number + " is not valid";
+        console.log("Error: " + msg);
+        api_result.status(409);
+        api_result.send(msg);
+    } else if (preset_title == NO_PRESET_VALUE) {
+        msg = "Preset " + preset_number + " is not set";
+        console.log("Error: " + msg);
+        api_result.status(500);
+        api_result.send(msg);
     } else {
+        // This is an asynchronous method, so the API endpoint will
+        // return 200 OK, regardless of eventual success (e.g. if 
+        // the station cannot be found)
         load_browse_result(opts, (stations) => {
+            found = false;
             stations.forEach(radio => {
                 if (radio["title"] == preset_title) {
-                    console.log("Preset station found, playing " + radio["title"] + " on zone " + zone.display_name);
+                    msg = "Preset station found, playing " + radio["title"] + " on zone " + zone.display_name;
+                    console.log("Success: " + msg);
                     opts["zone_or_output_id"]   = zone.zone_id;
                     opts["item_key"]            = radio["item_key"];                
                     opts["pop_all"]             = false;
                     browser.browse(opts);
-                    return true;
+                    found = true;
+                    return true;                 
                 }
             });
             // If the preset station wasn't found, we end up here
-            console.log("Error: preset " + preset + " station not found (" + preset_title + ")");
-            return false;
+            // ... but also if the station was found ¯\_(ツ)_/¯
+            // so rely on the 'found' variable instead
+            if (!found) {
+                msg = "Preset " + preset_number + " station not found (" + preset_title + ")";
+                console.log("Error: " + msg);
+            }
         });
     }
 }
@@ -209,16 +228,18 @@ roon.start_discovery();
 app.get("/api", function(req, res) {
     // Response can be customized as Express.js allows
     if (req.query.preset && req.query.zone) {
-        res.end()
         console.log("Preset requested: " + req.query.preset + ", zone: " + req.query.zone);
         let preset = req.query.preset,
             zone = get_zone(req.query.zone);
         if (zone) {
             console.log("Zone matched: " + zone.zone_id);
             // If the zone is found (i.e. not null) pass to radio preset function
-            radio_preset(zone, preset);
+            radio_preset(zone, preset, res);
         } else {
-            console.log("Error: zone not found");
+            msg = "Zone not found";
+            console.log("Error: " + msg);
+            res.status(404);
+            res.send(msg);
         }
     } else if (req.query.get_presets) {
         res.send(presets);        
@@ -228,13 +249,19 @@ app.get("/api", function(req, res) {
             content.push({ name: zone.display_name, id: zone.zone_id });
         });
         res.send(content);
+    } else {
+        msg = "Unsupported query";
+        console.log("Error: " + msg);
+        res.status(400);
+        res.send(msg);
     }
+    res.end();
 });
 
 // Start the server
 let server_opts = {
     "host":     "0.0.0.0",   // for any/all interfaces, use :: or 0.0.0.0
-    "port":     18161,
+    "port":     33161,
     "ipv6Only": false   // for IPv4 only, use 0.0.0.0 for host to listen on any/all interfaces; use :: when this is set to true
 }
 var server = app.listen(server_opts, function() {
