@@ -96,9 +96,9 @@ http://[server]:[port]/api?zone=[zone-display-name-or-id]&preset=[preset-number]
 
 ...where:
   - `[server]` is the IP address or name of the system where the extension is running;
-  - `[port]` is the TCP port the server is listening on (18161 by default);
-  - `[zone-display-name-or-id]` is the display name or ID of the Roon zone. The display name must be [URL-encoded](https://www.w3schools.com/tags/ref_urlencode.ASP), e.g. *Living Room* becomes *Living%20Room*;
-  - `[preset-number]` is a digit, 1–6 representing which radio station to look up.
+  - `[port]` is the TCP port the server is listening on (33161 by default);
+  - `[zone-display-name-or-id]` is the display name or ID of the Roon zone. The display name must be [URL-encoded](https://www.w3schools.com/tags/ref_urlencode.ASP), e.g. *Living Room* becomes *Living+Room*;
+  - `[preset-number]` is a digit, 1–6, representing which radio station to look up.
 
 The zone should begin playing the radio station shortly after the preset is triggered. Check the console logs (if running manually via Node.js or in VS Code) for error messages if nothing happens.
 
@@ -106,4 +106,4 @@ The zone should begin playing the radio station shortly after the preset is trig
 
 This extension is modelled after Varun Randery’s [roon-remote](https://github.com/varunrandery/roon-remote), it is basically the same code for a Node.js Express server, extended to the concept of radio presets.
 
-Jan Koudijs's (“[The Appgineer](https://github.com/TheAppgineer)”) [Roon extension manager](https://github.com/TheAppgineer/roon-extension-manager) and numerous extensions also served as a stand-in for the official Roon API documentation on how to write settings panes, etc for Roon extensions.
+Jan Koudijs’s (“[The Appgineer](https://github.com/TheAppgineer)”) [Roon extension manager](https://github.com/TheAppgineer/roon-extension-manager) and numerous extensions also served as a stand-in for the official Roon API documentation on how to write settings panes, etc for Roon extensions.
