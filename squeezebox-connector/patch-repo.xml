@@ -1,0 +1,13 @@
+<extensions>
+  <details>
+    <title lang="EN">Squeezebox patch repository by Ian Grant</title>
+  </details>
+  <patches>
+    <patch maxTarget="*" minTarget="7.5" name="RoonRadioPresetHack" target="baby" version="1.0">
+      <title lang="EN">Roon Radio Presets Extension Connector</title>
+      <desc lang="EN">Link the preset buttons to a Roon extension when connected to a Roon server</desc>
+      <url>https://raw.githubusercontent.com/imgrant/roon-extension-radio-presets-api/master/squeezebox-connector/roon-radio-presets.patch</url>
+      <creator>Ian Grant</creator>
+    </patch>
+  </patches>
+</extensions>
