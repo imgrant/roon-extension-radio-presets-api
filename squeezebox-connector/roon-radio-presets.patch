@@ -1,0 +1,51 @@
+--- share/jive/applets/SlimBrowser/SlimBrowserApplet.lua.orig	2020-07-09 13:23:54.172000000 +0100
++++ share/jive/applets/SlimBrowser/SlimBrowserApplet.lua	2020-11-11 11:36:44.757466000 +0000
+@@ -26,6 +26,8 @@
+ local table                  = require("jive.utils.table")
+ local string                 = require("string")
+ local json                   = require("json")
++local http                   = require("socket.http")
++local jivestring             = require("jive.utils.string")
+                              
+ local Applet                 = require("jive.Applet")
+ local System                 = require("jive.System")
+@@ -1607,7 +1609,22 @@
+ 		return EVENT_CONSUME
+ 	end
+ 
+-	if _player and _player:isPresetDefined(tonumber(number)) then
++	local roonExtensionServer = "roon-extension-manager.lan"
++	local roonExtensionPort = 33161
++	local urlEncodedPlayerName = jivestring.urlEncode(_player:getName())
++	local roonExtensionRadioPresetAPICall = "http://" .. roonExtensionServer .. ":" .. roonExtensionPort .. "/api?zone=" .. urlEncodedPlayerName .. "&preset=" .. number
++	log:debug("Making Roon preset extension API call: ", roonExtensionRadioPresetAPICall)
++
++	local ok, statusCode, headers, statusText = http.request {
++		method = "GET",
++		url = roonExtensionRadioPresetAPICall
++	}
++
++	log:debug("Roon preset extension API OK result: ", ok);
++	log:debug("Roon preset extension API status code: ", statusCode)
++	log:debug("Roon preset extension API status text: ", statusText)
++
++	if _player and ( _player:isPresetDefined(tonumber(number)) or statusCode == 200 ) then
+ 		_player:presetPress(number)
+ 		_goNowPlayingAction()
+ 	else
+--- share/jive/applets/NowPlaying/NowPlayingApplet.lua.orig	2020-11-11 11:59:08.067958900 +0000
++++ share/jive/applets/NowPlaying/NowPlayingApplet.lua	2020-11-11 11:58:04.597422900 +0000
+@@ -937,7 +937,13 @@
+ 
+ 		local track     = trackTable[1]
+ 		local artist    = trackTable[2]
++		if (type(artist) == 'userdata') then
++			artist = ''
++		end
+ 		local album     = trackTable[3]
++		if (type(album) == 'userdata') then
++			album = ''
++		end
+ 		
+ 		local artistalbum = ''
+ 		if artist ~= '' and album ~= '' then
