@@ -9,12 +9,12 @@ This extension was designed simply to enable the preset buttons on a [Squeezebox
 
 ## Installation
 
-### Using Roon Extension Manager
-If you're using the [Roon Extension Manager](https://github.com/TheAppgineer/roon-extension-manager) to manage extensions for your Roon core, you can use that to install this extension by adding a [custom repository file](https://github.com/TheAppgineer/roon-extension-manager/wiki/Development) — copy the [`radio-presets-api.json`](repos/radio-presets-api.json) file to a `repos/` subdirectory on the system where your Roon Extension Manager is running, then use the Roon Extension Manager to [install the extension](https://github.com/TheAppgineer/roon-extension-manager/wiki).
+### Method 1: Using Roon Extension Manager
+If you're using the [Roon Extension Manager](https://github.com/TheAppgineer/roon-extension-manager) to manage extensions for your Roon core, you can use that to install this extension by adding a [custom repository file](https://github.com/TheAppgineer/roon-extension-manager/wiki/Development) — copy the [`radio-presets-api.json`](extension-manager-repo/radio-presets-api.json) file to a `repos/` subdirectory on the system where your Roon Extension Manager is running, then use the Roon Extension Manager to [install the extension](https://github.com/TheAppgineer/roon-extension-manager/wiki).
 
 n.b. in future hopefully this extension will be integrated into the main [extension repository](https://github.com/TheAppgineer/roon-extension-repository), in which case you can skip the first step of manually copying the repo file.
 
-### Manual installation
+### Method 2: Manual installation
 
   1. Install Node.js (see [pre-requisites](#pre-requisites)), check you're running Node.js 5.x or higher with: `node -v`
   2. Clone this git repository to a suitable location (where you will run the extension, usually the same system as your Roon core, although it need not be)
@@ -101,6 +101,73 @@ http://[server]:[port]/api?zone=[zone-display-name-or-id]&preset=[preset-number]
   - `[preset-number]` is a digit, 1–6, representing which radio station to look up.
 
 The zone should begin playing the radio station shortly after the preset is triggered. Check the console logs (if running manually via Node.js or in VS Code) for error messages if nothing happens.
+
+## Squeezebox Radio integration
+
+The original goal of this extension was to enable the preset buttons on the [Squeezebox Radio](http://wiki.slimdevices.com/index.php/Squeezebox_Radio) to work when the Radio is connected to the Roon core with [Squeezebox Support](https://kb.roonlabs.com/Squeezebox_Setup) turned on — the Logitech Media Server emulation layer in Roon lacks support for many features such as this.
+
+Currently, there is no means to access the code for that functionality in Roon, but the [SqueezeOS platform](http://wiki.slimdevices.com/index.php/SqueezeOSArchitecture) that powers the Squeezebox Radio is, albeit dormant, [open source](https://github.com/Logitech/squeezeplay). Therefore, we can implement a workaround (this software) by means of a Roon extension and hacking the SqueezePlay (Jive) software running on the Radio.
+
+### Installing the connector on the Squeezebox Radio
+
+#### Method 1: Using the Patch Installer app
+
+For this method, you'll need an existing Logitech Media Server instance running for the initial patch installation, it can be turned off later.
+This method is also only suitable if the host where the Roon Radio Presets API Trigger extension is running is called *roon-extension-manager.lan*; if your extension host is named differently, you can use the manual method.
+
+1. On the radio, install the [Patch Installer](https://wiki.slimdevices.com/index.php/Patch_Installer_applet.html) applet using the menu interface: *Home > Settings > Advanced > Applet Installer* (then select the *Patch Installer* applet to install). The radio will restart.
+
+2. On the server, add a third-party extension repositoy using the following URL:
+
+    `https://raw.githubusercontent.com/imgrant/roon-extension-radio-presets-api/master/squeezebox-connector/patch-repo.xml`
+
+    Paste it into the *Additional Repositories* field at the bottom of the *Plugins* tab in the settings interface, and click *Apply:*
+
+    ![Logitech Media Server plugin settings](docs/lms-repo-settings.png)
+
+3. After the server has restarted, install the patch on the radio using the menu interface: *Home > Settings > Advanced > Patch Installer*, selecting the *Roon Radio Presets Extension Connector* patch to install. The radio will restart once more.
+
+4. Now turn off the Logitech Media Server and connect the radio to your Roon Server.
+
+5. Enjoy!
+
+#### Method 2: Manual installation
+
+1. Enable remote access (SSH) on your Squeezebox Radio, e.g. via the menus: *Home > Settings > Advanced > Remote Login > Enable SSH* (n.b. the default password is "1234")
+
+2. Optionally, edit the [`roon-radio-presets.patch`](squeezebox-connector/roon-radio-presets.patch) file and change the `roonExtensionServer` variable to match the host where the Roon extension will be running.
+  
+3. Copy the patch file to the radio, e.g. with SCP:
+
+    ```shell
+    $ scp ./squeezebox-connector/roon-radio-presets.patch root@<radio IP address>:
+    roon-radio-presets.patch                         100% 2146    89.6KB/s   00:00
+    ```
+
+4. Log in to the radio via SSH and apply the patch:
+
+    ```shell
+    $ ssh root@<radio IP address>
+    root@<radio IP address>'s password:
+
+    This network device is for authorized use only. Unauthorized or improper use
+    of this system may result in you hearing very bad music. If you do not consent
+    to these terms, LOG OFF IMMEDIATELY.
+
+    Ha, only joking. Now you have logged in feel free to change your root password
+    using the 'passwd' command. You can safely modify any of the files on this
+    system. A factory reset (press and hold add on power on) will remove all your
+    modifications and revert to the installed firmware.
+
+    Enjoy!
+    # cd /usr
+    # patch -u -p0 -i ~/roon-radio-presets.patch
+    patching file share/jive/applets/SlimBrowser/SlimBrowserApplet.lua
+    patching file share/jive/applets/NowPlaying/NowPlayingApplet.lua
+    Hunk #1 succeeded at 891 (offset -46 lines).
+    ```
+
+5. Reboot the radio, enjoy!
 
 ## Acknowledgements
 
